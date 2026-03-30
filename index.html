@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Birthday Rishika 🎸</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Oswald:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --deep: #111010;
+      --red: #c0392b;
+      --red2: #e74c3c;
+      --gold: #d4a017;
+      --gold2: #f0c040;
+      --white: #f0ece4;
+      --grey: #888;
+      --paper: #1a1714;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--black);
+      color: var(--white);
+      font-family: 'Special Elite', cursive;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── AUDIO ── */
+    #audio-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(10,10,10,0.85);
+      border: 1px solid var(--red);
+      padding: 10px 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    #audio-bar .song-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    #play-btn {
+      width: 36px; height: 36px;
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--white);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    #play-btn:hover { background: var(--red); }
+
+    .vinyl-spin {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50%, #222 20%, #111 20%, #333 45%, #111 45%, #222 65%, #111 65%);
+      border: 2px solid #444;
+      animation: spin 3s linear infinite paused;
+    }
+    .vinyl-spin.playing { animation-play-state: running; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── EQUALIZER BARS ── */
+    .eq {
+      display: flex; gap: 3px; align-items: flex-end; height: 20px;
+    }
+    .eq span {
+      width: 3px; background: var(--red);
+      border-radius: 1px;
+      animation: eq 0.6s ease infinite alternate paused;
+    }
+    .eq.playing span { animation-play-state: running; }
+    .eq span:nth-child(1) { height: 6px; animation-duration: 0.5s; }
+    .eq span:nth-child(2) { height: 14px; animation-duration: 0.7s; }
+    .eq span:nth-child(3) { height: 10px; animation-duration: 0.4s; }
+    .eq span:nth-child(4) { height: 18px; animation-duration: 0.6s; }
+    .eq span:nth-child(5) { height: 8px; animation-duration: 0.8s; }
+    @keyframes eq { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      text-align: center;
+      padding: 60px 20px;
+      background: radial-gradient(ellipse at 50% 0%, #2a0a0a 0%, var(--black) 70%);
+      overflow: hidden;
+    }
+
+    /* diagonal scratches */
+    #hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -55deg,
+        transparent,
+        transparent 40px,
+        rgba(255,255,255,0.012) 40px,
+        rgba(255,255,255,0.012) 41px
+      );
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 6px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 1s 0.3s forwards;
+    }
+
+    .hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(80px, 18vw, 200px);
+      line-height: 0.9;
+      color: var(--white);
+      letter-spacing: -2px;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 1s 0.6s forwards;
+    }
+
+    .hero-name .glitch {
+      position: relative;
+      display: inline-block;
+    }
+    .hero-name .glitch::before,
+    .hero-name .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+    .hero-name .glitch::before {
+      color: var(--red);
+      clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+      animation: glitch1 4s infinite;
+    }
+    .hero-name .glitch::after {
+      color: var(--gold);
+      clip-path: polygon(0 66%, 100% 66%, 100% 100%, 0 100%);
+      animation: glitch2 4s infinite;
+    }
+    @keyframes glitch1 {
+      0%,94%,100% { transform: none; opacity: 0; }
+      95% { transform: translateX(-4px); opacity: 1; }
+      97% { transform: translateX(4px); opacity: 1; }
+      99% { transform: none; opacity: 0; }
+    }
+    @keyframes glitch2 {
+      0%,90%,100% { transform: none; opacity: 0; }
+      91% { transform: translateX(4px); opacity: 1; }
+      93% { transform: translateX(-4px); opacity: 1; }
+      95% { transform: none; opacity: 0; }
+    }
+
+    .hero-bday {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(28px, 6vw, 72px);
+      color: var(--red);
+      letter-spacing: 8px;
+      margin-top: 10px;
+      opacity: 0;
+      animation: fadeUp 1s 0.9s forwards;
+    }
+
+    .hero-sub {
+      font-family: 'Special Elite', cursive;
+      font-size: 16px;
+      color: var(--grey);
+      margin-top: 16px;
+      letter-spacing: 2px;
+      opacity: 0;
+      animation: fadeUp 1s 1.2s forwards;
+    }
+
+    /* guitar SVG decoration */
+    .guitar-deco {
+      position: absolute;
+      opacity: 0.06;
+      font-size: 300px;
+      bottom: -40px;
+      left: -30px;
+      transform: rotate(-25deg);
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+      user-select: none;
+    }
+    .guitar-deco2 {
+      position: absolute;
+      opacity: 0.04;
+      font-size: 200px;
+      top: 20px;
+      right: -20px;
+      transform: rotate(15deg);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite reverse;
+      user-select: none;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0) rotate(-25deg); }
+      50% { transform: translateY(-20px) rotate(-25deg); }
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 30px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--grey);
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 1s 2s forwards, pulse 2s 3s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── COUNTDOWN ── */
+    #countdown {
+      background: var(--paper);
+      padding: 80px 20px;
+      text-align: center;
+      position: relative;
+      border-top: 1px solid #2a2a2a;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .section-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 6px;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    .countdown-grid {
+      display: flex;
+      justify-content: center;
+      gap: clamp(16px, 4vw, 48px);
+      flex-wrap: wrap;
+    }
+
+    .cd-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cd-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(60px, 12vw, 120px);
+      line-height: 1;
+      color: var(--white);
+      position: relative;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .cd-num::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .cd-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--grey);
+      text-transform: uppercase;
+    }
+
+    .cd-sep {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 80px;
+      color: var(--red);
+      line-height: 1;
+      align-self: flex-start;
+      margin-top: 10px;
+    }
+
+    .past-msg {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 8vw, 80px);
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+
+    /* ── PHOTOS ── */
+    #photos {
+      padding: 80px 20px;
+      background: var(--black);
+    }
+
+    .photos-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .photos-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 8vw, 90px);
+      color: var(--white);
+      letter-spacing: 4px;
+    }
+
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      .photos-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .photo-slot {
+      position: relative;
+      aspect-ratio: 4/5;
+      overflow: hidden;
+      background: var(--paper);
+      border: 1px solid #2a2a2a;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .photo-slot:hover { transform: scale(1.03) rotate(-1deg); }
+    .photo-slot:nth-child(even):hover { transform: scale(1.03) rotate(1deg); }
+
+    .photo-slot img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(20%) contrast(1.1);
+      transition: filter 0.3s;
+    }
+    .photo-slot:hover img { filter: grayscale(0%) contrast(1.2); }
+
+.photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(192,57,43,0.7) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: flex-end;
+      padding: 16px;
+    }
+    .photo-slot:hover .photo-overlay { opacity: 1; }
+
+    .photo-caption {
+      font-family: 'Special Elite', cursive;
+      font-size: 13px;
+      color: var(--white);
+    }
+
+    /* red tape corners */
+    .photo-slot::before, .photo-slot::after {
+      content: '';
+      position: absolute;
+      width: 24px; height: 6px;
+      background: var(--red);
+      opacity: 0.8;
+      z-index: 2;
+      transform: rotate(-45deg);
+    }
+    .photo-slot::before { top: 8px; left: 8px; transform: rotate(-45deg); }
+    .photo-slot::after  { bottom: 8px; right: 8px; transform: rotate(-45deg); }
+
+    /* ── MESSAGE ── */
+    #message {
+      padding: 100px 20px;
+      background: var(--paper);
+      position: relative;
+      overflow: hidden;
+      border-top: 1px solid #1e1e1e;
+    }
+
+    #message::before {
+      content: '♪';
+      position: absolute;
+      font-size: 600px;
+      color: rgba(255,255,255,0.015);
+      top: -100px; right: -100px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .msg-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .msg-quote-mark {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 120px;
+      color: var(--red);
+      line-height: 0.6;
+      margin-bottom: 20px;
+      opacity: 0.7;
+    }
+
+    .msg-text {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(16px, 2.5vw, 22px);
+      line-height: 1.9;
+      color: var(--white);
+      border-left: 3px solid var(--red);
+      padding-left: 28px;
+    }
+
+    .msg-sig {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .msg-sig-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--red), transparent);
+    }
+
+    .msg-sig-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--black);
+      padding: 48px 20px;
+      text-align: center;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .footer-skull { font-size: 32px; opacity: 0.6; }
+
+    .footer-text {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--grey);
+      margin-top: 12px;
+      text-transform: uppercase;
+    }
+
+    /* ── CONFETTI SPARKS ── */
+    .spark {
+      position: fixed;
+      pointer-events: none;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      z-index: 9998;
+      animation: sparkFly 1s forwards;
+    }
+    @keyframes sparkFly {
+      0% { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+    }
+
+    /* ── TAPE STRIPS ── */
+    .tape {
+      display: inline-block;
+      background: rgba(192,57,43,0.18);
+      border-top: 1px solid rgba(192,57,43,0.3);
+      border-bottom: 1px solid rgba(192,57,43,0.3);
+      padding: 2px 20px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── FIREWORKS OVERLAY ── */
+    #fireworks-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.8s;
+    }
+    #fireworks-canvas.active { opacity: 1; }
+
+    #bday-blast {
+      position: fixed;
+      inset: 0;
+      z-index: 501;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.8s, transform 0.8s;
+    }
+    #bday-blast.active { opacity: 1; transform: scale(1); }
+
+    .blast-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 12vw, 130px);
+      color: var(--gold2);
+      letter-spacing: 6px;
+      text-align: center;
+      text-shadow: 0 0 40px rgba(240,192,64,0.8), 0 0 80px rgba(240,192,64,0.4);
+      animation: blastPulse 1.5s ease-in-out infinite;
+      line-height: 1;
+    }
+    .blast-sub {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(16px, 3vw, 28px);
+      color: var(--white);
+      letter-spacing: 4px;
+      margin-top: 16px;
+      text-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+    .blast-emoji {
+      font-size: clamp(40px, 8vw, 80px);
+      margin-top: 20px;
+      animation: rockSway 1s ease-in-out infinite alternate;
+    }
+    @keyframes blastPulse {
+      0%,100% { text-shadow: 0 0 40px rgba(240,192,64,0.8), 0 0 80px rgba(240,192,64,0.4); }
+      50%      { text-shadow: 0 0 80px rgba(240,192,64,1),   0 0 160px rgba(192,57,43,0.6); }
+    }
+    @keyframes rockSway {
+      from { transform: rotate(-10deg); }
+      to   { transform: rotate(10deg); }
+    }
+
+
+  </style>
+</head>
+<body>
+
+<!-- AUDIO -->
+<audio id="bg-audio" loop>
+  <source src="stairway-to-heaven.mp3" type="audio/mpeg">
+</audio>
+
+<div id="audio-bar">
+  <div class="vinyl-spin" id="vinyl"></div>
+  <div>
+    <div class="song-title">Stairway to Heaven — Led Zeppelin</div>
+    <div class="eq" id="eq">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+  <button id="play-btn" title="Play/Pause">▶</button>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <span class="guitar-deco">🎸</span>
+  <span class="guitar-deco2">🤘</span>
+  <p class="hero-tag">— A Rock 'n' Roll Birthday —</p>
+  <h1 class="hero-name">
+    <span class="glitch" data-text="RISHIKA">RISHIKA</span>
+  </h1>
+  <p class="hero-bday">Happy Birthday</p>
+  <p class="hero-sub">Turn it up. This one's for you. 🎶</p>
+  <p class="scroll-hint">↓ Scroll ↓</p>
+</section>
+
+<!-- COUNTDOWN -->
+<section id="countdown">
+  <p class="section-label">— Counting Down —</p>
+  <div class="countdown-grid" id="countdown-grid">
+    <!-- filled by JS -->
+  </div>
+</section>
+
+<!-- PHOTOS -->
+<section id="photos">
+  <div class="photos-header reveal">
+    <p class="section-label">— The Gallery —</p>
+    <h2 class="photos-title">Moments</h2>
+  </div>
+
+  <div class="photos-grid" id="photo-grid">
+    <div class="photo-slot"><img src="photo1.jpg" alt="Memory 1"><div class="photo-overlay"><span class="photo-caption">Memory #1</span></div></div>
+    <div class="photo-slot"><img src="photo2.jpg" alt="Memory 2"><div class="photo-overlay"><span class="photo-caption">Memory #2</span></div></div>
+    <div class="photo-slot"><img src="photo3.jpg" alt="Memory 3"><div class="photo-overlay"><span class="photo-caption">Memory #3</span></div></div>
+    <div class="photo-slot"><img src="photo4.jpg" alt="Memory 4"><div class="photo-overlay"><span class="photo-caption">Memory #4</span></div></div>
+    <div class="photo-slot"><img src="photo5.jpg" alt="Memory 5"><div class="photo-overlay"><span class="photo-caption">Memory #5</span></div></div>
+    <div class="photo-slot"><img src="photo6.jpg" alt="Memory 6"><div class="photo-overlay"><span class="photo-caption">Memory #6</span></div></div>
+  </div>
+
+
+</section>
+
+<!-- MESSAGE -->
+<section id="message">
+  <div class="msg-inner reveal">
+    <div class="msg-quote-mark">"</div>
+    <p class="msg-text">
+      To Rishika — the girl who hums along to every riff, who feels the music in her bones.<br><br>
+      You came into this world like a power chord — loud, beautiful, and impossible to ignore.<br><br>
+      Another year older, another year of being the kind of person that makes everyone's playlist better just by being in it.<br><br>
+      Happy Birthday. May your year be as legendary as the songs you love. 🎸🔥
+    </p>
+    <div class="msg-sig">
+      <div class="msg-sig-line"></div>
+      <span class="msg-sig-name">With Love 🤘</span>
+      <div class="msg-sig-line" style="background: linear-gradient(to left, var(--red), transparent);"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FIREWORKS OVERLAY -->
+<canvas id="fireworks-canvas"></canvas>
+<div id="bday-blast">
+  <div class="blast-title">HAPPY BIRTHDAY<br>RISHIKA!</div>
+  <div class="blast-sub">🎸 The Legend Turns Another Year 🎸</div>
+  <div class="blast-emoji">🤘🎆🤘</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-skull">🎸</div>
+  <p class="footer-text">Made with love & rock 'n' roll for Rishika · 2 April</p>
+</footer>
+
+<script>
+  // ── AUDIO CONTROL ──
+  const audio = document.getElementById('bg-audio');
+  const playBtn = document.getElementById('play-btn');
+  const vinyl = document.getElementById('vinyl');
+  const eq = document.getElementById('eq');
+  let playing = false;
+
+  function tryPlay() {
+    audio.play().then(() => {
+      playing = true;
+      playBtn.textContent = '⏸';
+      vinyl.classList.add('playing');
+      eq.classList.add('playing');
+    }).catch(() => {});
+  }
+
+  // Try autoplay on load
+  window.addEventListener('load', () => {
+    audio.volume = 0.5;
+    tryPlay();
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (playing) {
+      audio.pause();
+      playing = false;
+      playBtn.textContent = '▶';
+      vinyl.classList.remove('playing');
+      eq.classList.remove('playing');
+    } else {
+      tryPlay();
+    }
+  });
+
+  // Also play on first user interaction if autoplay blocked
+  document.addEventListener('click', () => { if (!playing) tryPlay(); }, { once: true });
+
+  // ── FIREWORKS ──
+  const fwCanvas = document.getElementById('fireworks-canvas');
+  const fwCtx = fwCanvas.getContext('2d');
+  let fwActive = false;
+  let fwParticles = [];
+
+  function resizeFW() {
+    fwCanvas.width  = window.innerWidth;
+    fwCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeFW);
+  resizeFW();
+
+  const FW_COLORS = ['#f0c040','#c0392b','#e74c3c','#f0ece4','#d4a017','#ff6b6b','#fff','#ffaa00'];
+
+  function launchFirework() {
+    const x = Math.random() * fwCanvas.width;
+    const y = Math.random() * fwCanvas.height * 0.6;
+    const count = 80 + Math.floor(Math.random() * 60);
+    const color = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 / count) * i;
+      const speed = 2 + Math.random() * 5;
+      fwParticles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        alpha: 1,
+        color,
+        size: 2 + Math.random() * 2,
+        decay: 0.012 + Math.random() * 0.01,
+        gravity: 0.08,
+      });
+    }
+  }
+
+  function animateFW() {
+    if (!fwActive) return;
+    requestAnimationFrame(animateFW);
+    fwCtx.fillStyle = 'rgba(10,10,10,0.18)';
+    fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+    fwParticles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= 0.98;
+      p.alpha -= p.decay;
+      fwCtx.globalAlpha = Math.max(0, p.alpha);
+      fwCtx.fillStyle = p.color;
+      fwCtx.beginPath();
+      fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      fwCtx.fill();
+    });
+    fwCtx.globalAlpha = 1;
+    fwParticles = fwParticles.filter(p => p.alpha > 0);
+  }
+
+  function startFireworks() {
+    if (fwActive) return;
+    fwActive = true;
+    fwCanvas.classList.add('active');
+    document.getElementById('bday-blast').classList.add('active');
+    animateFW();
+    // Launch bursts repeatedly
+    launchFirework();
+    setTimeout(launchFirework, 300);
+    setTimeout(launchFirework, 600);
+    setTimeout(launchFirework, 900);
+    setInterval(() => {
+      launchFirework();
+      if (Math.random() > 0.5) setTimeout(launchFirework, 200);
+    }, 800);
+  }
+
+  // ── COUNTDOWN ──
+  let fwTriggered = false;
+  function updateCountdown() {
+    const now = new Date();
+    const bday = new Date(now.getFullYear(), 3, 2); // April 2 (month index 3)
+    if (now > bday) bday.setFullYear(bday.getFullYear() + 1);
+
+    const diff = bday - now;
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hrs  = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+    const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const secs = Math.floor((diff % (1000*60)) / 1000);
+
+    const grid = document.getElementById('countdown-grid');
+    if (diff <= 0) {
+      grid.innerHTML = `<div class="past-msg" style="font-size:clamp(20px,4vw,40px);color:var(--gold)">🎉 IT'S YOUR DAY! 🎉</div>`;
+      if (!fwTriggered) { fwTriggered = true; startFireworks(); }
+      return;
+    }
+
+    const units = [
+      { num: days, label: 'Days' },
+      { num: hrs,  label: 'Hours' },
+      { num: mins, label: 'Minutes' },
+      { num: secs, label: 'Seconds' },
+    ];
+
+    grid.innerHTML = units.map((u, i) =>
+      `${i > 0 ? '<span class="cd-sep">:</span>' : ''}
+      <div class="cd-unit">
+        <div class="cd-num">${String(u.num).padStart(2,'0')}</div>
+        <div class="cd-label">${u.label}</div>
+      </div>`
+    ).join('');
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // ── SCROLL REVEAL ──
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // ── SPARK ON CLICK ──
+  document.addEventListener('click', (e) => {
+    const colors = ['#c0392b','#d4a017','#f0c040','#e74c3c','#fff'];
+    for (let i = 0; i < 8; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      spark.style.left = e.clientX + 'px';
+      spark.style.top  = e.clientY + 'px';
+      spark.style.background = colors[Math.floor(Math.random()*colors.length)];
+      const angle = Math.random() * 360;
+      const dist  = 40 + Math.random() * 60;
+      spark.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+      spark.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+      document.body.appendChild(spark);
+      setTimeout(() => spark.remove(), 1000);
+    }
+  });
+
+
+</script>
+</body>
+</html>

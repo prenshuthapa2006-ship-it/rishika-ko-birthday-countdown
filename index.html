@@ -694,6 +694,7 @@
   let playing = false;
 
   function tryPlay() {
+    if (audio.currentTime < 300) audio.currentTime = 300;
     audio.play().then(() => {
       playing = true;
       playBtn.textContent = '⏸';

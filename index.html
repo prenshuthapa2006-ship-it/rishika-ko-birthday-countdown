@@ -801,23 +801,30 @@
 
   // ── COUNTDOWN ──
   let fwTriggered = false;
+  function isBirthday() {
+    const now = new Date();
+    return now.getMonth() === 3 && now.getDate() === 2; // April 2
+  }
+
   function updateCountdown() {
     const now = new Date();
-    const bday = new Date(now.getFullYear(), 3, 2); // April 2 (month index 3)
-    if (now > bday) bday.setFullYear(bday.getFullYear() + 1);
-
-    const diff = bday - now;
-    const days = Math.floor(diff / (1000*60*60*24));
-    const hrs  = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-    const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
-    const secs = Math.floor((diff % (1000*60)) / 1000);
-
     const grid = document.getElementById('countdown-grid');
-    if (diff <= 0) {
+
+    if (isBirthday()) {
       grid.innerHTML = `<div class="past-msg" style="font-size:clamp(20px,4vw,40px);color:var(--gold)">🎉 IT'S YOUR DAY! 🎉</div>`;
       if (!fwTriggered) { fwTriggered = true; startFireworks(); }
       return;
     }
+
+    // Count to next April 2
+    const bday = new Date(now.getFullYear(), 3, 2);
+    if (now >= bday) bday.setFullYear(bday.getFullYear() + 1);
+    const diff = bday - now;
+
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hrs  = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+    const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const secs = Math.floor((diff % (1000*60)) / 1000);
 
     const units = [
       { num: days, label: 'Days' },
